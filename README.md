@@ -6,6 +6,9 @@
 ## Human readable sizes in `ll`:
 <img src="images/ll_h.png" />
 
+## Weather (Credit To Igor Chubin):
+<img src="images/weather.png" />
+
 ## Fancy pattern matching [extglob]:
 
 `?(pattern-list)` Matches zero or one occurrence of the given patterns.
@@ -23,3 +26,12 @@ When `**` is used in a pathname expansion context, it will match all files and z
 
 ## Increased history size:
 \# of recent command lines saved: increased from `1000` to `100000`.
+
+## myip
+
+Command prints your externally visible IP.
+
+## plz
+
+Let's try that last command again, but with `sudo`.
+

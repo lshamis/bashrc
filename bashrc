@@ -120,9 +120,6 @@ fi
 ## Custom.                                     ##
 #################################################
 
-# Add human readable sizes.
-alias ll='ls -alFh'
-
 # Load in my custom prompt.
 if [ -f ~/.bash_prompt ]; then
     . ~/.bash_prompt

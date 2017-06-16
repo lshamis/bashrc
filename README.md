@@ -1,10 +1,10 @@
 # My BashRC Changes
 
 ## Custom prompt:
-![Image of prompt](https://raw.githubusercontent.com/lshamis/bashrc/master/prompt.png)
+<img src="images/prompt.png" />
 
 ## Human readable sizes in `ll`:
-![Image of ll](https://raw.githubusercontent.com/lshamis/bashrc/master/ll_h.png)
+<img src="images/ll_h.png" />
 
 ## Fancy pattern matching [extglob]:
 

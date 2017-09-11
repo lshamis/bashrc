@@ -1,4 +1,11 @@
-source /etc/bash_completion.d/git-prompt
+if [ -f /etc/bash_completion.d/git-prompt ]; then
+  source /etc/bash_completion.d/git-prompt
+else
+  function __git_ps1
+  {
+    :
+  }
+fi
 
 function __pretty_prompt
 {
@@ -36,14 +43,14 @@ function __pretty_prompt
   local UWhite="\[\e[4;37m\]"       # White
 
   # Background
-  local On_Black="\[\e[40m\]'       #"Black
-  local On_Red="\[\e[41m\]'         #"Red
-  local On_Green="\[\e[42m\]'       #"Green
-  local On_Yellow="\[\e[43m\]'      #"Yellow
-  local On_Blue="\[\e[44m\]'        #"Blue
-  local On_Purple="\[\e[45m\]'      #"Purple
-  local On_Cyan="\[\e[46m\]'        #"Cyan
-  local On_White="\[\e[47m\]'       #"White
+  local On_Black="\[\e[40m\]"       # Black
+  local On_Red="\[\e[41m\]"         # Red
+  local On_Green="\[\e[42m\]"       # Green
+  local On_Yellow="\[\e[43m\]"      # Yellow
+  local On_Blue="\[\e[44m\]"        # Blue
+  local On_Purple="\[\e[45m\]"      # Purple
+  local On_Cyan="\[\e[46m\]"        # Cyan
+  local On_White="\[\e[47m\]"       # White
 
   # High Intensity
   local IBlack="\[\e[0;90m\]"       # Black

@@ -7,6 +7,18 @@ else
   }
 fi
 
+export VIRTUAL_ENV_DISABLE_PROMPT=1
+
+function __virtualenv_info()
+{
+  if [[ -n "$VIRTUAL_ENV" ]]; then
+    venv="${VIRTUAL_ENV##*/}"
+  else
+    venv=''
+  fi
+  [[ -n "$venv" ]] && echo " (venv:$venv)"
+}
+
 function __pretty_prompt
 {
   # Reset
@@ -83,7 +95,7 @@ function __pretty_prompt
   local On_IWhite="\[\e[0;107m\]"   # White
 
   # Final build and set
-  local LineOne="${BYellow}\u${BCyan}@${BGreen}\h${Color_Off} ${BBlack}[${Logo}${BBlack}\t ${UBlack}\#${Color_Off}${BBlack}\$(__git_ps1)]${Color_Off}"
+  local LineOne="${BYellow}\u${BCyan}@${BGreen}\h${Color_Off} ${BBlack}[${Logo}${BBlack}\t ${UBlack}\#${Color_Off}${BBlack}\$(__git_ps1 \" (git:%s)\")\$(__virtualenv_info)]${Color_Off}"
   local LineTwo="${BBlue}\w${Color_Off}"
   local LineThree="${White}\$${Color_Off}"
   export PS1="\n${LineOne}\n${LineTwo}\n${LineThree} "

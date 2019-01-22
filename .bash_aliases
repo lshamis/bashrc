@@ -10,8 +10,7 @@ alias ll='ls -alFh'
 weather() { curl "wttr.in/~$*"; }
 
 # Display our external facing ip.
-# All credit goes to https://major.io
-alias myip="curl icanhazip.com"
+alias myip="dig +short myip.opendns.com @resolver1.opendns.com"
 
 # Once more, with feeling!
 # Rerun the previous command, prepended with sudo.

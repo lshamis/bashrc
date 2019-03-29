@@ -44,7 +44,7 @@ SUDO_FLAGS="-v /usr/bin/sudo:/usr/bin/sudo:ro -v /usr/lib/sudo:/usr/lib/sudo:ro"
 NET_FLAGS="--network host --add-host dev:127.0.0.1"
 X11_FLAGS="-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=${DISPLAY}"
 
-echo docker run --rm -it --privileged \
+docker run --rm -it --privileged \
   --name $NAME \
   -h $NAME \
   $RUNTIME \

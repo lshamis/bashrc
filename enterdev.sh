@@ -41,7 +41,7 @@ done
 
 USER_FLAGS="-u $UID:$(id -g) -v /home/$USER:/home/$USER -w /home/$USER"
 SUDO_FLAGS="-v /usr/bin/sudo:/usr/bin/sudo:ro -v /usr/lib/sudo:/usr/lib/sudo:ro"
-NET_FLAGS="--network host --add-host dev:127.0.0.1"
+NET_FLAGS="--network host --add-host ${NAME}:127.0.0.1"
 X11_FLAGS="-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=${DISPLAY}"
 
 docker run --rm -it --privileged \

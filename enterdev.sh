@@ -44,15 +44,19 @@ SUDO_FLAGS="-v /usr/bin/sudo:/usr/bin/sudo:ro -v /usr/lib/sudo:/usr/lib/sudo:ro"
 NET_FLAGS="--network host --add-host ${NAME}:127.0.0.1"
 X11_FLAGS="-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=${DISPLAY}"
 
-docker run --rm -it --privileged \
-  --name $NAME \
-  -h $NAME \
-  $RUNTIME \
-  $USER_FLAGS \
-  $ETC_MOUNT_FLAGS \
-  $SUDO_FLAGS \
-  $NET_FLAGS \
-  $X11_FLAGS \
-  $@ \
-  $IMAGE bash
+if [ "$(docker ps -q -f name=${NAME})" ]; then
+  docker exec -it $NAME bash
+else
+  docker run --rm -it --privileged \
+    --name $NAME \
+    -h $NAME \
+    $RUNTIME \
+    $USER_FLAGS \
+    $ETC_MOUNT_FLAGS \
+    $SUDO_FLAGS \
+    $NET_FLAGS \
+    $X11_FLAGS \
+    $@ \
+    $IMAGE bash
+fi
 

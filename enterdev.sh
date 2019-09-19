@@ -35,16 +35,18 @@ done
 USER=$(whoami)
 
 ETC_MOUNT_FLAGS=""
-for f in "group" "inputrc" "localtime" "passwd" "shadow" "sudoers"; do
+for f in "group" "gshadow" "inputrc" "localtime" "passwd" "shadow" "subgid" "subuid" "sudoers"; do
   ETC_MOUNT_FLAGS="${ETC_MOUNT_FLAGS} -v /etc/$f:/etc/$f:ro"
 done
 
-USER_FLAGS="-u $UID:$(id -g) -v /home/$USER:/home/$USER -w /home/$USER"
+USER_FLAGS="-u $(id -u):$(id -g) -v /home/$USER:/home/$USER -w /home/$USER"
+for grp in $(id -G); do USER_FLAGS="$USER_FLAGS --group-add $grp"; done
+
 SUDO_FLAGS="-v /usr/bin/sudo:/usr/bin/sudo:ro -v /usr/lib/sudo:/usr/lib/sudo:ro"
 NET_FLAGS="--network host --add-host ${NAME}:127.0.0.1"
 X11_FLAGS="-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=${DISPLAY}"
 
-if [ "$(docker ps -q -f name=${NAME})" ]; then
+if [ $(docker ps -q -f name="^${NAME}$") ]; then
   docker exec -it $NAME bash
 else
   docker run --rm -it --privileged \

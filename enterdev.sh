@@ -1,11 +1,12 @@
-set -o errexit -o noclobber -o nounset -o pipefail
+#!/bin/bash
+set -o errexit -o noclobber -o nounset
 
-opts="$(getopt -o n:i: -l name:,image:,nvidia --name "$0" -- "$@")"
+opts="$(getopt -o n:i:d -l name:,image:,detach --name "$0" -- "$@")"
 eval set -- "$opts"
 
 NAME="dev"
 IMAGE="ubuntu:bionic"
-RUNTIME=""
+DETACH=false
 while true
 do
   case "$1" in
@@ -17,8 +18,8 @@ do
       IMAGE=$2
       shift 2
       ;;
-    --nvidia)
-      RUNTIME="--runtime=nvidia"
+    -d|--detach)
+      DETACH=true
       shift
       ;;
     --)
@@ -44,21 +45,33 @@ for grp in $(id -G); do USER_FLAGS="$USER_FLAGS --group-add $grp"; done
 
 SUDO_FLAGS="-v /usr/bin/sudo:/usr/bin/sudo:ro -v /usr/lib/sudo:/usr/lib/sudo:ro"
 NET_FLAGS="--network host --add-host ${NAME}:127.0.0.1"
-X11_FLAGS="-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=${DISPLAY}"
+IPC_FLAGS="--ipc host --pid host"
+X11_FLAGS=""
+if [ "${DISPLAY:-}" ]; then
+  X11_FLAGS="-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=${DISPLAY}"
+fi
+NVIDIA_FLAGS=""
+if [[ $(docker run --rm --runtime=nvidia ${IMAGE} bash -c "exit 0" 2>/dev/null ; echo $? ) == 0 ]]; then
+  NVIDIA_FLAGS="--runtime=nvidia"
+elif [[ $(docker run --rm --gpus=all ${IMAGE} bash -c "exit 0" 2>/dev/null ; echo $? ) == 0 ]]; then
+  NVIDIA_FLAGS="--gpus=all"
+fi
 
-if [ $(docker ps -q -f name="^${NAME}$") ]; then
-  docker exec -it $NAME bash
-else
-  docker run --rm -it --privileged \
+if [ ! $(docker ps -q -f name="^${NAME}$") ]; then
+  docker run --rm -it -d --privileged \
     --name $NAME \
     -h $NAME \
-    $RUNTIME \
     $USER_FLAGS \
     $ETC_MOUNT_FLAGS \
     $SUDO_FLAGS \
     $NET_FLAGS \
+    $IPC_FLAGS \
     $X11_FLAGS \
+    $NVIDIA_FLAGS \
     $@ \
     $IMAGE bash
 fi
 
+if [ "$DETACH" = false ]; then
+  docker exec -it -w "${PWD}" $NAME bash
+fi

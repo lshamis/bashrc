@@ -56,6 +56,7 @@ if [[ $(docker run --rm --runtime=nvidia ${IMAGE} bash -c "exit 0" 2>/dev/null ;
 elif [[ $(docker run --rm --gpus=all ${IMAGE} bash -c "exit 0" 2>/dev/null ; echo $? ) == 0 ]]; then
   NVIDIA_FLAGS="--gpus=all"
 fi
+DOCKER_FLAGS="-v /var/run/docker.sock:/var/run/docker.sock -v /usr/bin/docker:/usr/bin/docker"
 
 if [ ! $(docker ps -q -f name="^${NAME}$") ]; then
   docker run --rm -it -d --privileged \
@@ -68,6 +69,7 @@ if [ ! $(docker ps -q -f name="^${NAME}$") ]; then
     $IPC_FLAGS \
     $X11_FLAGS \
     $NVIDIA_FLAGS \
+    $DOCKER_FLAGS \
     $@ \
     $IMAGE bash
 fi

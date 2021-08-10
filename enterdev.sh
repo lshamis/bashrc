@@ -5,7 +5,7 @@ opts="$(getopt -o n:i:d -l name:,image:,detach --name "$0" -- "$@")"
 eval set -- "$opts"
 
 NAME="dev"
-IMAGE="ubuntu:bionic"
+IMAGE="ubuntu:focal"
 DETACH=false
 while true
 do
@@ -33,32 +33,32 @@ do
   esac
 done
 
-USER=$(whoami)
-
-ETC_MOUNT_FLAGS=""
-for f in "group" "gshadow" "inputrc" "localtime" "passwd" "shadow" "subgid" "subuid" "sudoers"; do
-  ETC_MOUNT_FLAGS="${ETC_MOUNT_FLAGS} -v /etc/$f:/etc/$f:ro"
-done
-
-USER_FLAGS="-u $(id -u):$(id -g) -v /home/$USER:/home/$USER -w /home/$USER"
-for grp in $(id -G); do USER_FLAGS="$USER_FLAGS --group-add $grp"; done
-
-SUDO_FLAGS="-v /usr/bin/sudo:/usr/bin/sudo:ro -v /usr/lib/sudo:/usr/lib/sudo:ro"
-NET_FLAGS="--network host --add-host ${NAME}:127.0.0.1"
-IPC_FLAGS="--ipc host --pid host"
-X11_FLAGS=""
-if [ "${DISPLAY:-}" ]; then
-  X11_FLAGS="-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=${DISPLAY}"
-fi
-NVIDIA_FLAGS=""
-if [[ $(docker run --rm --runtime=nvidia ${IMAGE} bash -c "exit 0" 2>/dev/null ; echo $? ) == 0 ]]; then
-  NVIDIA_FLAGS="--runtime=nvidia"
-elif [[ $(docker run --rm --gpus=all ${IMAGE} bash -c "exit 0" 2>/dev/null ; echo $? ) == 0 ]]; then
-  NVIDIA_FLAGS="--gpus=all"
-fi
-DOCKER_FLAGS="-v /var/run/docker.sock:/var/run/docker.sock -v /usr/bin/docker:/usr/bin/docker"
-
 if [ ! $(docker ps -q -f name="^${NAME}$") ]; then
+  USER=$(whoami)
+
+  ETC_MOUNT_FLAGS=""
+  for f in "group" "gshadow" "inputrc" "localtime" "passwd" "shadow" "subgid" "subuid" "sudoers"; do
+    ETC_MOUNT_FLAGS="${ETC_MOUNT_FLAGS} -v /etc/$f:/etc/$f:ro"
+  done
+
+  USER_FLAGS="-u $(id -u):$(id -g) -v ${HOME}:${HOME}"
+  for grp in $(id -G); do USER_FLAGS="${USER_FLAGS} --group-add $grp"; done
+
+  SUDO_FLAGS="-v /usr/bin/sudo:/usr/bin/sudo:ro -v /usr/lib/sudo:/usr/lib/sudo:ro"
+  NET_FLAGS="--network host --add-host ${NAME}:127.0.0.1"
+  IPC_FLAGS="--ipc host --pid host"
+  X11_FLAGS=""
+  if [ "${DISPLAY:-}" ]; then
+    X11_FLAGS="-v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=${DISPLAY}"
+  fi
+  NVIDIA_FLAGS=""
+  if [[ $(docker run --rm --runtime=nvidia ${IMAGE} bash -c "exit 0" 2>/dev/null ; echo $? ) == 0 ]]; then
+    NVIDIA_FLAGS="--runtime=nvidia"
+  elif [[ $(docker run --rm --gpus=all ${IMAGE} bash -c "exit 0" 2>/dev/null ; echo $? ) == 0 ]]; then
+    NVIDIA_FLAGS="--gpus=all"
+  fi
+  DOCKER_FLAGS="-v /var/run/docker.sock:/var/run/docker.sock -v /usr/bin/docker:/usr/bin/docker"
+
   docker run --rm -it -d --privileged \
     --name $NAME \
     -h $NAME \

@@ -125,6 +125,13 @@ if [ -f ~/.bash_prompt ]; then
     . ~/.bash_prompt
 fi
 
+# Add human readable sizes.
+alias ll='ls -alFh'
+
+# Once more, with feeling!
+# Rerun the previous command, prepended with sudo.
+alias plz="fc -l -1 | cut -d' ' -f2- | xargs sudo"
+
 # Enable fancy globbing.
 #
 # ?(pattern-list)  Matches zero or one occurrence of the given patterns

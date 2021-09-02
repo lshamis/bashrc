@@ -34,15 +34,13 @@ do
 done
 
 if [ ! $(docker ps -q -f name="^${NAME}$") ]; then
-  USER=$(whoami)
+  USER_FLAGS="-u $(id -u):$(id -g) -v ${HOME}:${HOME}"
+  for grp in $(id -G); do USER_FLAGS="${USER_FLAGS} --group-add $grp"; done
 
   ETC_MOUNT_FLAGS=""
   for f in "group" "gshadow" "inputrc" "localtime" "passwd" "shadow" "subgid" "subuid" "sudoers"; do
     ETC_MOUNT_FLAGS="${ETC_MOUNT_FLAGS} -v /etc/$f:/etc/$f:ro"
   done
-
-  USER_FLAGS="-u $(id -u):$(id -g) -v ${HOME}:${HOME}"
-  for grp in $(id -G); do USER_FLAGS="${USER_FLAGS} --group-add $grp"; done
 
   SUDO_FLAGS="-v /usr/bin/sudo:/usr/bin/sudo:ro -v /usr/lib/sudo:/usr/lib/sudo:ro"
   NET_FLAGS="--network host --add-host ${NAME}:127.0.0.1"

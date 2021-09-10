@@ -1,12 +1,13 @@
 #!/bin/bash
 set -o errexit -o noclobber -o nounset
 
-opts="$(getopt -o n:i:d -l name:,image:,detach --name "$0" -- "$@")"
+opts="$(getopt -o n:i:d -l name:,image:,detach,hostbin --name "$0" -- "$@")"
 eval set -- "$opts"
 
 NAME="dev"
-IMAGE="ubuntu:focal"
+IMAGE=""
 DETACH=false
+HOSTBIN=false
 while true
 do
   case "$1" in
@@ -22,6 +23,10 @@ do
       DETACH=true
       shift
       ;;
+    --hostbin)
+      HOSTBIN=true
+      shift
+      ;;
     --)
       shift
       break
@@ -34,6 +39,15 @@ do
 done
 
 if [ ! $(docker ps -q -f name="^${NAME}$") ]; then
+  if [ -z "$IMAGE" ]; then
+    IMAGE="enterdev/dev:latest"
+    if [ ! $(docker images -q "$IMAGE") ]; then
+      pushd "$(dirname "$0")"
+      docker build -t "$IMAGE" -f dev.Dockerfile .
+      popd
+    fi
+  fi
+
   USER_FLAGS="-u $(id -u):$(id -g) -v ${HOME}:${HOME}"
   for grp in $(id -G); do USER_FLAGS="${USER_FLAGS} --group-add $grp"; done
 
@@ -42,7 +56,11 @@ if [ ! $(docker ps -q -f name="^${NAME}$") ]; then
     ETC_MOUNT_FLAGS="${ETC_MOUNT_FLAGS} -v /etc/$f:/etc/$f:ro"
   done
 
-  SUDO_FLAGS="-v /usr/bin/sudo:/usr/bin/sudo:ro -v /usr/lib/sudo:/usr/lib/sudo:ro"
+  SUDO_FLAGS=""
+  if [ "$HOSTBIN" = true ]; then
+    SUDO_FLAGS="-v /usr/bin/sudo:/usr/bin/sudo:ro -v /usr/lib/sudo:/usr/lib/sudo:ro"
+  fi
+
   NET_FLAGS="--network host --add-host ${NAME}:127.0.0.1"
   IPC_FLAGS="--ipc host --pid host"
   X11_FLAGS=""
@@ -55,7 +73,10 @@ if [ ! $(docker ps -q -f name="^${NAME}$") ]; then
   elif [[ $(docker run --rm --gpus=all ${IMAGE} bash -c "exit 0" 2>/dev/null ; echo $? ) == 0 ]]; then
     NVIDIA_FLAGS="--gpus=all"
   fi
-  DOCKER_FLAGS="-v /var/run/docker.sock:/var/run/docker.sock -v /usr/bin/docker:/usr/bin/docker"
+  DOCKER_FLAGS="-v /var/run/docker.sock:/var/run/docker.sock"
+  if [ "$HOSTBIN" = true ]; then
+    DOCKER_FLAGS="${DOCKER_FLAGS} -v /usr/bin/docker:/usr/bin/docker:ro"
+  fi
 
   docker run --rm -it -d --privileged \
     --name $NAME \

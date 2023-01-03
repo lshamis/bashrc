@@ -34,7 +34,7 @@ $ ps aux | py split -t 'x[0]' | xargs py collections.Counter -t most_common
 [('root', 257), ('lshamis', 189), ('dbus', 2), ('td-agent', 2), ('avahi', 2), ('USER', 1), ('polkitd', 1), ('rtkit', 1), ('chrony', 1), ('colord', 1), ('nobody', 1), ('dnsmasq', 1), ('systemd+', 1)]
 ```
 
-To support piping, `xargs` and `unxargs` are valid expressions:
+To support piping, `xargs` and `unxargs` are valid expressions, that convert from multiple independent inputs, to a list, and visa-versa:
 ```
 $ ps aux | py split -t 'x[0]' -t xargs -t collections.Counter -t most_common -t unxargs
 ('root', 258)

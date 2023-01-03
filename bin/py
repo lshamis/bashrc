@@ -10,6 +10,10 @@ import string
 import sys
 
 
+class Skip:
+    pass
+
+
 def try_import(module_name):
     try:
         return importlib.import_module(module_name)
@@ -60,10 +64,22 @@ class Context:
 
         self.try_load_symbols("~/.config/py/extra_symbols.py")
 
-    def eval_code(self, code, **extra_symbols):
+    def eval_code(self, code, value=None, **extra_symbols):
         while True:
             try:
-                return eval(code, self.get_symbols(**extra_symbols))
+                # Try value.code()
+                attr = getattr(value, code, Skip)
+                if attr is not Skip:
+                    return attr() if callable(attr) else attr
+
+                # Execute code.
+                result = eval(code, self.get_symbols(**extra_symbols))
+
+                # Try code(value)
+                if callable(result):
+                    result = result(value)
+
+                return result
             except NameError as err:
                 module_match = re.match("name '(\w+)' is not defined", str(err))
                 if module_match and try_import(module_match.group(1)):
@@ -83,10 +99,6 @@ class Context:
             except Exception as err:
                 self.had_err = 1
                 return err
-
-
-class Skip:
-    pass
 
 
 class NoValueHandler:
@@ -109,10 +121,24 @@ class OneValueHandler:
         if code == "unxargs":
             return ManyValueHandler(self.ctx, self.value)
 
-        return OneValueHandler(self.ctx.eval_code(code, x=self.value))
+        if isinstance(self.value, Exception):
+            return self
+
+        return OneValueHandler(
+            self.ctx, self.ctx.eval_code(code, value=self.value, x=self.value)
+        )
 
     def print(self):
-        print(self.value)
+        # Errors defaults to filtering out the entry, unless args.show_error.
+        if isinstance(self.value, Exception):
+            if self.ctx.args.show_error:
+                print(self.value)
+        # None defaults to filtering out the entry, unless args.show_none.
+        elif self.value is None:
+            if self.ctx.args.show_none:
+                print(self.value)
+        else:
+            print(self.value)
 
 
 class ManyValueHandler:
@@ -124,6 +150,9 @@ class ManyValueHandler:
     def eval(self, code):
         if code == "xargs":
             return OneValueHandler(self.ctx, self.values)
+
+        if isinstance(self.values, Exception):
+            return self
 
         if self.indexes is None:
             new_vals = [self._eval_one(code, val) for val in self.values]
@@ -155,7 +184,7 @@ class ManyValueHandler:
             local_symbols = {"x": val}
             if idx:
                 local_symbols["i"] = idx
-            new_val = self.ctx.eval_code(code, **local_symbols)
+            new_val = self.ctx.eval_code(code, value=val, **local_symbols)
             if isinstance(new_val, Exception):
                 if self.ctx.args.show_error:
                     return new_val
@@ -173,20 +202,13 @@ class ManyValueHandler:
         return Skip
 
     def print(self):
-        for val in self.values:
-            self._print_one(val)
-
-    def _print_one(self, val):
-        # Errors defaults to filtering out the entry, unless args.show_error.
-        if isinstance(val, Exception):
+        if isinstance(self.values, Exception):
             if self.ctx.args.show_error:
-                print(val)
-        # None defaults to filtering out the entry, unless args.show_none.
-        elif val is None:
-            if self.ctx.args.show_none:
-                print(val)
-        else:
-            print(val)
+                print(self.values)
+            return
+
+        for val in self.values:
+            OneValueHandler(self.ctx, val).print()
 
 
 def main():

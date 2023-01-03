@@ -37,6 +37,8 @@ class Context:
 
     def load_symbols(self, path):
         path = os.path.expanduser(path)
+        if not os.path.exists(path):
+            raise FileNotFoundError(path)
         module_name = self._random_module_name()
         spec = importlib.util.spec_from_file_location(module_name, path)
         module = importlib.util.module_from_spec(spec)
@@ -49,6 +51,14 @@ class Context:
             return True
         except:
             return False
+
+    def load_user_symbols(self):
+        env_path = os.environ.get("PY_SYMBOL_FILEPATHS")
+        if env_path:
+            for path in env_path.split(":"):
+                self.load_symbols(path)
+
+        self.try_load_symbols("~/.config/py/extra_symbols.py")
 
     def eval_code(self, code, **extra_symbols):
         while True:
@@ -213,7 +223,7 @@ def main():
         help="Print None values. Default is to use None as a filter.",
     )
     ctx = Context(parser.parse_intermixed_args())
-    ctx.try_load_symbols("~/.config/py/extra_symbols.py")
+    ctx.load_user_symbols()
 
     if sys.stdin.isatty():
         value_handler = NoValueHandler(ctx)

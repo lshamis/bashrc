@@ -1,0 +1,35 @@
+format = """$all$time$directory
+$character"""
+
+[conda]
+format = '[$symbol$environment]($style) '
+
+[directory]
+truncation_length = 0
+truncate_to_repo = false
+
+[git_branch]
+format = '[$symbol$branch(:$remote_branch)]($style) '
+
+[hostname]
+format = '[$ssh_symbol$hostname]($style) '
+
+[package]
+format = '[$symbol$version]($style) '
+
+[python]
+format = '[${symbol}${pyenv_prefix}(${version} )(\($virtualenv\) )]($style)'
+
+[shell]
+disabled = false
+format = '[\[ $indicator\]]($style) '
+
+[time]
+disabled = false
+format = '[$time]($style) '
+use_12hr = true
+utc_time_offset = '-7'
+style = 'bold green'
+
+[username]
+format = '[$user]($style) '
